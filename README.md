@@ -1,70 +1,188 @@
-# QueueLess — Clean Local Development Build
+# QueueLess — Smart Queue Management System
 
-A readable, modular MERN-style project for an AI-enhanced digital queue and service discovery demo. This is a clean starter implementation, not a claim that the previous ZIP's code was already end-to-end tested.
+QueueLess is an AI-enhanced digital queue management platform designed to make waiting for everyday services more convenient.
+
+Whether someone is visiting a clinic, a bank, or a college help desk, standing in a physical queue without knowing the expected waiting time can be frustrating. QueueLess addresses this problem by allowing customers to discover services, book digital tokens, and track their queue status while enterprises manage their queues through a dedicated dashboard.
+
+The project combines a MERN-style web application with an AI assistant to provide a simple, centralized queue management experience.
+
+## The Problem
+
+Traditional queues often create unnecessary waiting, uncertainty, and manual coordination. Customers may not know how many people are ahead of them, while service providers need a convenient way to organize and update their queues.
+
+## The Solution
+
+QueueLess provides a digital alternative where:
+
+- Customers can discover available services and book tokens online.
+- Customers can check their token status and estimated waiting time.
+- Enterprises can publish services and manage tokens as they move through the queue.
+- An AI assistant can answer contextual questions about services and queue operations.
+- Administrators can view basic platform statistics.
 
 ## Features
 
-- Customer and enterprise registration/login; administrator is created only by a private seed script.
-- JWT authentication and role checks enforced by the backend.
-- Enterprises publish services; customers search the published directory and book tokens.
-- Enterprise queue view can mark tokens as serving or completed.
-- Baseline estimated wait: active tokens ahead × service average duration.
-- Contextual AI assistant for customers and enterprise operators (no RAG/vector database).
-- Groq Cloud primary provider with Gemini API fallback.
-- Readable multi-file React UI, Express routes, Mongoose models, and CSS.
+### Customer
+- Register and log in securely.
+- Browse and search the service directory.
+- Book digital queue tokens.
+- View personal tokens and their current status.
+- Check estimated waiting times.
+- Ask the AI assistant questions about available services.
 
-## Requirements
+### Enterprise
+- Register and log in as a service provider.
+- Publish services with relevant details.
+- View tokens associated with enterprise queues.
+- Update token status as customers are served.
+- Use the AI assistant for operational guidance.
 
-- Node.js 20 or newer (your Node 25 should work; if any dependency compatibility issue occurs, use an active LTS version).
-- MongoDB running locally or a MongoDB Atlas URI.
-- Optional: Groq and Gemini API keys for AI chat.
+### Administrator
+- Access the administrator dashboard.
+- View platform statistics, including customer count, enterprise count, service count, waiting tokens, and total tokens.
+- Use a dedicated administrator account created through the backend seed script.
 
-## 1. Configure environment
+### AI Assistant
+- Uses Groq as the primary AI provider.
+- Attempts Gemini as a fallback when the primary provider fails.
+- Supports customer questions and enterprise operational queries.
+- Keeps provider API keys on the backend.
 
-From the project root:
+### Queue Management
+- Issues digital tokens to customers.
+- Tracks token states such as `WAITING`, `SERVING`, and `COMPLETED`.
+- Estimates waiting time using the number of active tokens ahead and the service's average duration.
+
+## Technology Stack
+
+| Layer | Technologies |
+|---|---|
+| Frontend | React, Vite, CSS |
+| Backend | Node.js, Express.js |
+| Database | MongoDB, Mongoose |
+| Authentication | JWT, bcrypt |
+| AI integration | Groq Cloud, Google Gemini |
+| Development tools | npm, Git |
+
+## Architecture
+
+QueueLess follows a modular client-server architecture.
+
+```text
+                 ┌─────────────────────────┐
+                 │      React Frontend     │
+                 │      Vite + CSS         │
+                 └────────────┬────────────┘
+                              │
+                         REST API
+                              │
+                 ┌────────────▼────────────┐
+                 │    Express Backend      │
+                 │                         │
+                 │ Authentication & Roles  │
+                 │ Services & Tokens       │
+                 │ Admin Statistics        │
+                 │ AI Assistant             │
+                 └───────┬─────────┬───────┘
+                         │         │
+                  ┌──────▼─────┐  ┌▼────────────────┐
+                  │  MongoDB   │  │  AI Providers    │
+                  │            │  │  Groq / Gemini   │
+                  └────────────┘  └─────────────────┘
+```
+
+The frontend communicates with the backend through REST API endpoints. The backend handles authentication, authorization, service operations, token management, database access, and AI requests.
+
+## Getting Started
+
+Follow these instructions to run QueueLess locally.
+
+### Prerequisites
+
+- Node.js 20 or newer
+- npm
+- MongoDB running locally or a MongoDB Atlas connection URI
+- Groq and/or Gemini API keys for AI functionality
+
+### 1. Clone the repository
+
+```bash
+git clone <YOUR_GITHUB_REPOSITORY_URL>
+cd QueueLess
+```
+
+Replace the placeholder with your repository URL after publishing the project.
+
+### 2. Configure environment variables
+
+Create the backend environment file:
 
 ```bash
 cp server/.env.example server/.env
+```
+
+Generate a secure JWT secret:
+
+```bash
 openssl rand -hex 32
 ```
 
-Open `server/.env` and set a unique `JWT_SECRET` using the generated value. Set a private `ADMIN_PASSWORD` (at least 8 characters). Add provider keys if you want AI chat enabled. Do not commit `server/.env`.
+Open `server/.env` and configure the required values:
 
-The backend uses port **5001** by default. The Vite proxy is already configured to send `/api` requests to `http://127.0.0.1:5001`. The frontend uses port **5173**.
+- `JWT_SECRET`: use the generated secret.
+- `ADMIN_EMAIL`: choose an administrator email.
+- `ADMIN_PASSWORD`: choose a strong administrator password.
+- `MONGODB_URI`: configure the MongoDB connection.
+- `GROQ_API_KEY`: add your Groq API key if using Groq.
+- `GEMINI_API_KEY`: add your Gemini API key if using Gemini fallback.
 
-## 2. Install packages
+Use the variable names and any required model settings defined in `server/.env.example`.
 
-Open a terminal at the project root:
+**Important:** Never commit your real `.env` file or expose API keys in screenshots, source code, or public discussions.
+
+### 3. Install dependencies
+
+From the project root:
 
 ```bash
 npm --prefix server install
 npm --prefix client install
 ```
 
-## 3. Create the initial admin
+### 4. Start MongoDB
 
-Ensure MongoDB is running, then:
+Ensure your local MongoDB service is running, or configure a valid MongoDB Atlas URI.
+
+### 5. Create the administrator account
+
+From the project root:
 
 ```bash
 cd server
 npm run seed:admin
 ```
 
-The seed script creates the admin once. It does not reset the password on every run. If the email already belongs to a non-admin account, it promotes that account to ADMIN; use a dedicated admin email in `.env`.
+The seed script creates the administrator account if it does not already exist. Running it again does not automatically reset an existing administrator's password.
 
-## 4. Start the backend
+Use a dedicated administrator email rather than an existing customer or enterprise account.
 
-From `server/`:
+### 6. Start the backend
+
+From the `server` directory:
 
 ```bash
 npm run dev
 ```
 
-Expected startup messages include a successful MongoDB connection and `QueueLess listening at http://localhost:5001`.
+The backend should connect to MongoDB and listen on port `5001` by default.
 
-Check health at `http://localhost:5001/api/health`.
+Health check:
 
-## 5. Start the frontend
+```text
+http://localhost:5001/api/health
+```
+
+### 7. Start the frontend
 
 Open a second terminal at the project root:
 
@@ -73,46 +191,102 @@ cd client
 npm run dev
 ```
 
-Open `http://localhost:5173`.
+Open the application:
 
-## AI providers
+```text
+http://localhost:5173
+```
 
-- Groq key: https://console.groq.com/keys
-- Gemini key: https://aistudio.google.com/app/api-keys
+The Vite development proxy forwards `/api` requests to the backend at `http://127.0.0.1:5001`.
 
-`GROQ_MODEL` and `GEMINI_MODEL` are configurable. Model availability can differ by account, region, quota, and provider lifecycle. If a model is rejected, choose a currently supported model in the provider's console/docs and update the `.env` value. The AI service sends plain text chat requests, not strict JSON schemas. Provider keys are only read by the server.
+## AI Configuration
 
-The server attempts Groq first and tries Gemini if Groq fails. If both fail, the UI shows a helpful error. A configured API key does not guarantee free quota or model access.
+QueueLess integrates two AI providers:
 
-## Demo flow
+| Provider | Purpose |
+|---|---|
+| Groq Cloud | Primary provider |
+| Google Gemini | Fallback provider |
 
-1. Register an enterprise and publish a service.
-2. Sign out and register a customer.
-3. Search for that service and book a token.
-4. Sign in as the enterprise and mark the token `SERVING`, then `COMPLETED`.
-5. Test the customer assistant and enterprise operations assistant.
-6. Sign in with the seeded admin credentials to view platform counts.
+Configure the API keys and model names using the variables supported by `server/.env.example`.
 
-## API overview
+Obtain API keys from the providers' official consoles:
 
-- `POST /api/auth/register/customer`
-- `POST /api/auth/register/enterprise`
-- `POST /api/auth/login`
-- `GET /api/services` (optional `?search=`)
-- `GET /api/services/mine` (enterprise)
-- `POST /api/services` (enterprise)
-- `POST /api/tokens` (customer)
-- `GET /api/tokens/mine` (customer)
-- `GET /api/tokens/enterprise` (enterprise)
-- `PATCH /api/tokens/:id/status`
-- `POST /api/ai/chat` (customer or enterprise)
-- `GET /api/admin/stats` (admin)
-- `GET /api/health`
+- [Groq API Keys](https://console.groq.com/keys)
+- [Google AI Studio](https://aistudio.google.com/app/api-keys)
 
-## Important limitations
+Model availability, quotas, and access restrictions may change. A valid API key does not guarantee that a particular model is available.
 
-- This is a demo-ready foundation; it has not been audited for production use.
-- Token numbering is simple and may have concurrency collisions under simultaneous bookings; production should use an atomic counter per service/day.
-- The AI assistant offers guidance only; it does not perform bookings or mutate queue data.
-- No RAG, vector database, email verification, payment flow, QR check-in, realtime sockets, or enterprise approval workflow is implemented in this starter.
-- For a public deployment, add stronger validation, password reset, account verification, audit logs, tests, and production security review.
+The assistant provides contextual guidance; it does not independently book tokens or modify queue records.
+
+## Demo Workflow
+
+To explore the main application flow:
+
+1. Register an enterprise account.
+2. Publish a service.
+3. Register a customer account.
+4. Search for the published service.
+5. Book a digital token.
+6. View the token and its estimated waiting time.
+7. Sign in as the enterprise and update the token's status.
+8. Test the AI assistant.
+9. Sign in using the administrator credentials to view platform statistics.
+
+## API Overview
+
+The backend exposes the following main endpoints:
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| `POST` | `/api/auth/register/customer` | Register a customer |
+| `POST` | `/api/auth/register/enterprise` | Register an enterprise |
+| `POST` | `/api/auth/login` | Authenticate a user |
+| `GET` | `/api/services` | List or search services |
+| `GET` | `/api/services/mine` | View the enterprise's services |
+| `POST` | `/api/services` | Publish a service |
+| `POST` | `/api/tokens` | Book a token |
+| `GET` | `/api/tokens/mine` | View customer tokens |
+| `GET` | `/api/tokens/enterprise` | View enterprise tokens |
+| `PATCH` | `/api/tokens/:id/status` | Update token status |
+| `POST` | `/api/ai/chat` | Send a message to the AI assistant |
+| `GET` | `/api/admin/stats` | Retrieve administrator statistics |
+| `GET` | `/api/health` | Check backend health |
+
+Some endpoints require authentication and role-based authorization.
+
+## Current Limitations
+
+QueueLess is a development and demonstration project, not a production-ready queue management service.
+
+- Token numbering is simple and may encounter collisions during simultaneous bookings.
+- Waiting-time estimates depend on the configured average service duration and active tokens ahead.
+- The AI assistant provides guidance rather than performing queue operations.
+- Retrieval-augmented generation (RAG) and vector database integration are not implemented.
+- Email verification, password recovery, payment processing, QR check-in, real-time socket updates, and enterprise approval workflows are not implemented in this version.
+- The application has not undergone a production security audit.
+
+## Future Scope
+
+Potential improvements include:
+
+- Real-time queue updates using WebSockets.
+- More accurate waiting-time predictions based on historical service data.
+- Priority-based queue handling.
+- QR-code check-in.
+- Email and notification integration.
+- Expanded administrator controls for managing users, enterprises, services, and tokens.
+- Retrieval-augmented generation for answers grounded in service documentation.
+- Automated tests, monitoring, and production deployment.
+
+These are proposed improvements, not claims about currently implemented features.
+
+## Project Status
+
+QueueLess is an evolving project focused on digital queue management, role-based workflows, and AI-assisted service discovery.
+
+The current implementation provides a foundation that can be extended with real-time updates, more advanced queue scheduling, and stronger administrative controls.
+
+## License
+
+No license has been specified yet. Add a license before allowing others to reuse or redistribute the project.
